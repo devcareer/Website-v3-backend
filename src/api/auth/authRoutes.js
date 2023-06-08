@@ -9,6 +9,8 @@ router.route('/login').post(loginLimiter, authController.login);
 
 router.route('/forgot').post(authController.forgotPassword);
 
+router.route('/verify').post(authController.emailVerification);
+
 router.route('/reset').get(authController.resetPasswordLink);
 
 router.route('/change').post(authController.changePassword);

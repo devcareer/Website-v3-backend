@@ -9,6 +9,13 @@ const {
 
 const signup = async (res, req) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(409).json({
+      message:
+        'The email address is already associated with an existing account',
+      success: false,
+    });
+  }
   try {
     // Check if the user already exists
     const existingUser = await User.findOne({ email }).exec();
@@ -68,7 +75,7 @@ const login = async (req, res) => {
   try {
     if (!username && !password && !verified) {
       return res.status(400).json({
-        message: 'All fields are required and you need to be verified.',
+        message: 'All fields are required.',
         success: false,
       });
     }
@@ -102,7 +109,7 @@ const login = async (req, res) => {
       },
     };
 
-    res.json({
+    res.status(200).json({
       data,
       message: 'Login is successful',
       success: true,
@@ -115,13 +122,67 @@ const login = async (req, res) => {
   }
 };
 
+const emailVerification = async (req, res) => {
+  const { token } = req.params;
+  // Check we have an id
+  if (!token) {
+    return res.status(422).json({
+      message: 'Missing require token',
+    });
+  }
+  // Verify the token from the URL
+  let payload = null;
+  try {
+    payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+  } catch (error) {
+    return res.status(500).json({ message: 'server error' });
+  }
+  try {
+    //Find user with matching ID
+    const foundUser = await User.findOne({ _id: payload.ID }).exec();
+    if (!foundUser) {
+      return res.status(404).json({
+        message: 'User does not  exists',
+      });
+    }
+    if (foundUser.verified) {
+      return res.status(400).json({
+        message: 'This user has already been verified.',
+        foundUser,
+      });
+    }
+
+    // Update user verification status to true
+    foundUser.verified = true;
+    await foundUser.save();
+    return res.status(200).json({
+      message: 'The account has been verified successfully.',
+      user: {
+        verified: foundUser.verified,
+        _id: foundUser._id,
+        username: foundUser.username,
+        email: foundUser.email,
+        avatar: foundUser.avatar,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Server error',
+      success: false,
+    });
+  }
+};
+
 const resetPasswordLink = async (req, res) => {
   const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Invalid email' });
+  }
   try {
     const foundUser = await User.findOne({ email: email });
     if (!foundUser) {
       return res.status(404).send({
-        message: 'User does not  exists',
+        message: 'The email address does not exists',
       });
     }
     const token = await jwt.sign(
@@ -158,11 +219,19 @@ const resetPasswordLink = async (req, res) => {
 
 const forgotPassword = async (data, res) => {
   const { email } = req.body;
+  if (!email) {
+    return res
+      .status(400)
+      .json({
+        message:
+          'The request is missing required parameters or contain invalid data',
+      });
+  }
   try {
     const foundUser = await User.findOne({ email: email });
     if (!foundUser) {
       return res.status(404).json({
-        message: 'Invalid email',
+        message: 'The email address does not exists',
         success: false,
       });
     }
@@ -183,9 +252,9 @@ const forgotPassword = async (data, res) => {
     // save update user
     await foundUser.save();
 
-    return res.status(201).json({
+    return res.status(200).json({
       data: foundUser,
-      message: `Forgot password successfully created`,
+      message: `The password was successfully reset`,
       success: true,
     });
   } catch (err) {
@@ -197,20 +266,26 @@ const forgotPassword = async (data, res) => {
 };
 
 const changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (oldPassword === newPassword) {
+    return res.status(400).json({
+      message:
+        'The request is missing required parameters or contain invalid data',
+    });
+  }
   try {
-    const { oldPassword, newPassword } = req.body;
     const user = await User.findById(req.user._id);
-    let isMatch = await bcrypt.compare(oldPassword, user.password);
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (isMatch) {
       const hashedPassword = await bcrypt.hash(newPassword, 16);
       await user.update({ password: hashedPassword });
-      return res.status(201).json({
+      return res.status(200).json({
         message: 'Your password has been successfully reset',
         success: true,
       });
     } else {
-      return res.status(404).json({
-        message: 'Your old password is incorrect',
+      return res.status(401).json({
+        message: 'The provided current password password is incorrect',
         success: false,
       });
     }
@@ -228,4 +303,5 @@ module.exports = {
   resetPasswordLink,
   forgotPassword,
   changePassword,
+  emailVerification,
 };
