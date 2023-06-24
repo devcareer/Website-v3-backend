@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../auth/authController');
+const AuthController = require('../auth/authController');
 const loginLimiter = require('../../middleware/LogLimiter');
 
-router.route('/signup').post(authController.signup);
+router.route('/signup').post(AuthController.signup);
 
-router.route('/login').post(loginLimiter, authController.login);
+router.route('/login').post(loginLimiter, AuthController.login);
 
-router.route('/forgot').post(authController.forgotPassword);
+router.route('/forgot').post(AuthController.forgotPassword);
 
-router.route('/verify').post(authController.emailVerification);
+router.route('/verify/:token').post(AuthController.emailVerification);
 
-router.route('/reset').get(authController.resetPasswordLink);
+router.route('/reset').get(AuthController.resetPasswordLink);
 
-router.route('/change').post(authController.changePassword);
+router.route('/change').post(AuthController.changePassword);
 
 module.exports = router;

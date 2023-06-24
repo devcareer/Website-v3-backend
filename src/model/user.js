@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+const { Schema, model } = require('mongoose');
 
 const UserSchema = new Schema(
   {
@@ -17,18 +17,18 @@ const UserSchema = new Schema(
     },
     avatar: {
       type: String,
-      default: "no-image.png",
+      default: 'no-image.png',
     },
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: ['admin', 'user'],
+      default: 'user',
     },
     isSubscribed: {
       type: Boolean,
       default: false,
     },
-    verified: {
+    isVerified: {
       type: Boolean,
       default: true,
     },
@@ -36,4 +36,4 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = model("User", UserSchema);
+module.exports = model('User', UserSchema);

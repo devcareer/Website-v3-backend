@@ -4,21 +4,26 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  service: 'Your Email Service Provider',
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  service: 'mailtrap',
+  host: process.env.CONTACT_HOST,
+  port: process.env.SEND_MAIL_PORT,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
   },
+  tls: {
+    minVersion: 'TLSv1.2', // Specify the desired minimum SSL/TLS version here
+    maxVersion: 'TLSv1.3', // Specify the desired maximum SSL/TLS version here
+  },
+  ciphers: 'TLS_AES_128_GCM_SHA256',
 });
 
 module.exports.sendVerificationEmail = (email, subject, link) => {
   const mailOptions = {
-    from: 'Your Name <your-email@example.com>',
-    to: email,
-    subject: subject,
+    from: 'olaobey15@gmail.com',
+    to: 'John@talentql.com',
+    subject: 'Verify your email address for successful account activation',
     html: `
       <p>Please click the following link to verify your email and to complete your <strong>DevCareer</strong> registration account</p>
       

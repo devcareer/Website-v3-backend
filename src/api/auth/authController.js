@@ -7,12 +7,11 @@ const {
   forgotPasswordMail,
 } = require('../../service/email/sendEmail');
 
-const signup = async (res, req) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+const signup = async (req, res) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
     return res.status(409).json({
-      message:
-        'The email address is already associated with an existing account',
+      message: 'Username, email, and password are required',
       success: false,
     });
   }
@@ -53,7 +52,7 @@ const signup = async (res, req) => {
       user: {
         token,
         url,
-        verified: user.verified,
+        isVerified: user.isVerified,
         role: user.role,
       },
     };
@@ -71,24 +70,34 @@ const signup = async (res, req) => {
 };
 
 const login = async (req, res) => {
-  const { username, password, verified } = req.body;
+  const { email, password, isVerified } = req.body;
+  const { loginType } = req.query;
   try {
-    if (!username && !password && !verified) {
+    if (!email && !password && !isVerified) {
       return res.status(400).json({
-        message: 'All fields are required.',
+        message: 'All fields are required and you need to be verified.',
         success: false,
       });
     }
 
     // Check if the user exists
-    const foundUser = await User.findOne({ username })
-      .select('-password')
-      .exec();
+    const foundUser = await User.findOne({ email }).select('-password').exec();
     if (!foundUser) {
       return res.status(401).json({
         message: 'Unauthorized',
         success: false,
       });
+    }
+
+    // if query loginType is "admin"
+    if (loginType === 'admin') {
+      if (foundUser.role !== 'admin') {
+        return res.status(406).json({
+          message:
+            'UNABLE TO ACCESS! Accessing the page or resource you were trying to reach is forbidden',
+          success: false,
+        });
+      }
     }
 
     // Validate the password
@@ -104,12 +113,15 @@ const login = async (req, res) => {
       userInfo: {
         userId: foundUser._id,
         username: foundUser.username,
+        avatar: foundUser.avatar,
         email: foundUser.email,
         role: foundUser.role,
+        verified: foundUser.isVerified,
+        isSubscribed: foundUser.isSubscribed,
       },
     };
 
-    res.status(200).json({
+    return res.status(200).json({
       data,
       message: 'Login is successful',
       success: true,
@@ -124,7 +136,6 @@ const login = async (req, res) => {
 
 const emailVerification = async (req, res) => {
   const { token } = req.params;
-  // Check we have an id
   if (!token) {
     return res.status(422).json({
       message: 'Missing require token',
@@ -133,19 +144,19 @@ const emailVerification = async (req, res) => {
   // Verify the token from the URL
   let payload = null;
   try {
-    payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    payload = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
   } catch (error) {
-    return res.status(500).json({ message: 'server error' });
+    return res.status(500).json({ message: 'server error', success: false });
   }
   try {
     //Find user with matching ID
-    const foundUser = await User.findOne({ _id: payload.ID }).exec();
+    const foundUser = await User.findOne({ _id: payload.id }).exec();
     if (!foundUser) {
       return res.status(404).json({
         message: 'User does not  exists',
       });
     }
-    if (foundUser.verified) {
+    if (foundUser.isVerified) {
       return res.status(400).json({
         message: 'This user has already been verified.',
         foundUser,
@@ -153,12 +164,12 @@ const emailVerification = async (req, res) => {
     }
 
     // Update user verification status to true
-    foundUser.verified = true;
+    foundUser.isVerified = true;
     await foundUser.save();
     return res.status(200).json({
       message: 'The account has been verified successfully.',
       user: {
-        verified: foundUser.verified,
+        verified: foundUser.isVerified,
         _id: foundUser._id,
         username: foundUser.username,
         email: foundUser.email,
@@ -167,7 +178,7 @@ const emailVerification = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: 'Server error',
+      message: error.message,
       success: false,
     });
   }
@@ -217,15 +228,13 @@ const resetPasswordLink = async (req, res) => {
   }
 };
 
-const forgotPassword = async (data, res) => {
+const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    return res
-      .status(400)
-      .json({
-        message:
-          'The request is missing required parameters or contain invalid data',
-      });
+    return res.status(400).json({
+      message:
+        'The request is missing required parameters or contain invalid data',
+    });
   }
   try {
     const foundUser = await User.findOne({ email: email });
@@ -238,7 +247,7 @@ const forgotPassword = async (data, res) => {
 
     const token = await jwt.sign(
       { id: foundUser._id },
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.JWT_TOKEN_SECRET,
       {
         expiresIn: '5min',
       }
@@ -257,9 +266,9 @@ const forgotPassword = async (data, res) => {
       message: `The password was successfully reset`,
       success: true,
     });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({
-      message: err.message,
+      message: 'server error',
       success: false,
     });
   }
