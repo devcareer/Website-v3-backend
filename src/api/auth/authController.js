@@ -8,13 +8,22 @@ const {
 } = require('../../service/email/sendEmail');
 
 const signup = async (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password) {
+  const { username, email, password, confirmPassword } = req.body;
+  if (!username || !email || !password || !confirmPassword) {
     return res.status(409).json({
       message: 'Username, email, and password are required',
       success: false,
     });
   }
+
+  // Check if password and confirm password match
+  if (password !== confirmPassword) {
+    return res.status(400).json({
+      message: 'Password and confirm password do not match',
+      success: false,
+    });
+  }
+
   try {
     // Check if the user already exists
     const existingUser = await User.findOne({ email }).exec();
@@ -46,7 +55,6 @@ const signup = async (req, res) => {
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/verify/${token}`;
     await sendVerificationEmail(user.email, 'Email Verification\n', url);
-    console.log(token);
 
     const data = {
       user: {
@@ -56,6 +64,7 @@ const signup = async (req, res) => {
         role: user.role,
       },
     };
+
     return res.status(201).json({
       data,
       message: `Account successfully created and verification email has been sent to ${user.email}`,
@@ -70,65 +79,124 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, isVerified } = req.body;
-  const { loginType } = req.query;
+  const cookies = req.cookies;
+  console.log(`cookie available at login: ${JSON.stringify(cookies)}`);
+  const { email, password } = req.body;
+  if (!email && !password) {
+    return res.status(400).json({
+      message: 'All fields are required and you need to be verified.',
+      success: false,
+    });
+  }
   try {
-    if (!email && !password && !isVerified) {
-      return res.status(400).json({
-        message: 'All fields are required and you need to be verified.',
-        success: false,
-      });
-    }
-
     // Check if the user exists
-    const foundUser = await User.findOne({ email }).select('-password').exec();
+    const foundUser = await User.findOne({ email })
+      .select('+password +loginAttempts')
+      .exec();
     if (!foundUser) {
       return res.status(401).json({
         message: 'Unauthorized',
         success: false,
       });
     }
-
-    // if query loginType is "admin"
-    if (loginType === 'admin') {
-      if (foundUser.role !== 'admin') {
-        return res.status(406).json({
-          message:
-            'UNABLE TO ACCESS! Accessing the page or resource you were trying to reach is forbidden',
-          success: false,
-        });
-      }
-    }
-
     // Validate the password
     const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     if (!isPasswordValid) {
+      // Increment the login attempt counter for wrong password
+      const updatedUser = await User.findOneAndUpdate(
+        { email },
+        { $inc: { loginAttempts: 1 } },
+        { new: true }
+      );
+      // Check if maximum login attempts exceeded
+      if (updatedUser.loginAttempts >= 3) {
+        return res.status(401).json({
+          message:
+            'Maximum login attempts exceeded. Please register or use forgot password to be able to access your account.',
+          success: false,
+        });
+      }
       return res.status(401).json({
         message: 'Invalid credentials',
         success: false,
       });
     }
 
-    const data = {
-      userInfo: {
-        userId: foundUser._id,
-        username: foundUser.username,
-        avatar: foundUser.avatar,
-        email: foundUser.email,
-        role: foundUser.role,
-        verified: foundUser.isVerified,
-        isSubscribed: foundUser.isSubscribed,
+    // Generate JWT token with login status
+    const accessToken = jwt.sign(
+      {
+        UserInfo: {
+          userId: foundUser._id,
+          username: foundUser.username,
+          email: foundUser.email,
+          avatar: foundUser.avatar,
+          verified: foundUser.isVerified,
+          updatedAt: Date.now(),
+          new: true,
+          username: foundUser.username,
+        },
       },
-    };
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '15m' }
+    );
 
+    const newRefreshToken = jwt.sign(
+      {
+        username: foundUser.username,
+      },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Changed to let keyword
+    let newRefreshTokenArray = !cookies?.jwt
+      ? foundUser.refreshToken
+      : foundUser.refreshToken.filter((rt) => rt !== cookies.jwt);
+    if (cookies?.jwt) {
+      const refreshToken = cookies.jwt;
+      const foundToken = await User.findOne({ refreshToken }).exec();
+      // Detected refresh token reuse!
+      if (!foundToken) {
+        console.log('attempted refresh token reuse at login!');
+        // clear out ALL previous refresh tokens
+        newRefreshTokenArray = [];
+      }
+      res.clearCookie('jwt', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true,
+      });
+    }
+    // Saving refreshToken with current user
+    foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+    const result = await foundUser.save();
+    console.log(result);
+
+    // Creates Secure Cookie with refresh token
+    res.cookie('jwt', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    // Reset the login attempt counter on successful login
+    await User.findOneAndUpdate(
+      { email },
+      { $set: { loginAttempts: 0 } },
+      { new: true }
+    );
+
+    // Successful login
     return res.status(200).json({
-      data,
+      accessToken,
       message: 'Login is successful',
       success: true,
     });
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
+      error: error.message,
       success: false,
     });
   }
@@ -184,50 +252,6 @@ const emailVerification = async (req, res) => {
   }
 };
 
-const resetPasswordLink = async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({ message: 'Invalid email' });
-  }
-  try {
-    const foundUser = await User.findOne({ email: email });
-    if (!foundUser) {
-      return res.status(404).send({
-        message: 'The email address does not exists',
-      });
-    }
-    const token = await jwt.sign(
-      { id: foundUser._id },
-      process.env.JWT_TOKEN_SECRET,
-      {
-        expiresIn: '5min',
-      }
-    );
-
-    // Email the user a unique reset password link
-    const url = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
-    await resetPasswordMail(foundUser.email, 'Reset Password\n', url);
-    console.log(token);
-    const data = {
-      user: {
-        token,
-        url,
-        resetPasswordMail,
-      },
-    };
-    return res.status(201).json({
-      data,
-      message: `Reset password successfully sent to ${foundUser.email}`,
-      success: true,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      message: 'Server error',
-      success: false,
-    });
-  }
-};
-
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -237,7 +261,7 @@ const forgotPassword = async (req, res) => {
     });
   }
   try {
-    const foundUser = await User.findOne({ email: email });
+    const foundUser = await User.findOne({ email: email }).exec();
     if (!foundUser) {
       return res.status(404).json({
         message: 'The email address does not exists',
@@ -254,8 +278,12 @@ const forgotPassword = async (req, res) => {
     );
 
     // Email the user a unique forgot password link
-    const url = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
-    await forgotPasswordMail(foundUser.email, 'Forgot Password\n', url);
+    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
+    await forgotPasswordMail(
+      foundUser.email,
+      'Forgot Password\n',
+      resetPasswordUrl
+    );
     console.log(token);
 
     // save update user
@@ -274,31 +302,120 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-const changePassword = async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
-  if (oldPassword === newPassword) {
-    return res.status(400).json({
-      message:
-        'The request is missing required parameters or contain invalid data',
-    });
+const resetPasswordLink = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Invalid email' });
   }
   try {
-    const user = await User.findById(req.user._id);
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (isMatch) {
-      const hashedPassword = await bcrypt.hash(newPassword, 16);
-      await user.update({ password: hashedPassword });
-      return res.status(200).json({
-        message: 'Your password has been successfully reset',
-        success: true,
+    const foundUser = await User.findOne({ email: email }).exec();
+    if (!foundUser) {
+      return res.status(404).send({
+        message: 'The email address does not exists',
       });
-    } else {
-      return res.status(401).json({
-        message: 'The provided current password password is incorrect',
+    }
+
+    const token = await jwt.sign(
+      { id: foundUser._id },
+      process.env.JWT_TOKEN_SECRET,
+      {
+        expiresIn: '5min',
+      }
+    );
+
+    // Email the user a unique reset password link
+    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
+    await resetPasswordMail(
+      foundUser.email,
+      'Reset Password\n',
+      resetPasswordUrl
+    );
+
+    const data = {
+      user: {
+        token,
+        resetPasswordUrl,
+        resetPasswordMail,
+      },
+    };
+    return res.status(201).json({
+      data,
+      message: `Reset password successfully sent to ${foundUser.email}`,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Server error',
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+  try {
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        message: 'Token and password are required',
         success: false,
       });
     }
-  } catch (err) {
+
+    // Verify the reset token
+    const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
+
+    // Find the user by their ID
+    const foundUser = await User.findById(decoded.id)
+      .select('+_id +resetPasswordAttempts')
+      .exec();
+    if (!foundUser) {
+      return res.status(404).json({
+        message: 'User not found',
+        success: false,
+      });
+    }
+
+    // Check if the provided password matches the user's current password
+    const isMatch = await bcrypt.compare(newPassword, foundUser.password);
+    if (isMatch) {
+      // Increment the login attempt counter for wrong password
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: decoded.id },
+        { $inc: { resetPasswordAttempts: 1 } },
+        { new: true }
+      );
+
+      // Check if maximum login attempts exceeded
+      if (updatedUser.resetPasswordAttempts >= 3) {
+        return res.status(401).json({
+          message:
+            'Maximum reset password attempts exceeded. Please provide new password to be able to reset your password.',
+          success: false,
+        });
+      }
+      return res.status(400).json({
+        message: 'New password must be different from the current password',
+        success: false,
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password
+    foundUser.password = hashedPassword;
+
+    // Reset the reset password attempts counter on successful password reset
+    foundUser.resetPasswordAttempts = 0;
+
+    // Save the changes to the user document
+    await foundUser.save();
+    return res.status(200).json({
+      message: 'Password reset successful',
+      success: true,
+    });
+  } catch (error) {
     return res.status(500).json({
       message: 'Server error',
       success: false,
@@ -306,10 +423,124 @@ const changePassword = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword, userId } = req.body;
+  if (currentPassword === newPassword) {
+    return res.status(400).json({
+      message: 'You can not use old password as a new password',
+    });
+  }
+  try {
+    const foundUser = await User.findById(userId)
+      .select('+password +changePasswordAttempts')
+      .exec();
+    // Check if the user exists
+    if (!foundUser) {
+      return res.status(404).json({
+        message: 'User not found',
+        success: false,
+      });
+    }
+    const isMatch = await bcrypt.compare(currentPassword, foundUser.password);
+    if (isMatch) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Increment the reset password attempts counter
+      await User.findOneAndUpdate(
+        { _id: userId },
+        { $inc: { changePasswordAttempts: 1 } },
+        { new: true }
+      );
+
+      foundUser.password = hashedPassword;
+
+      await foundUser.save();
+
+      return res.status(200).json({
+        message: 'Your password has been successfully changed',
+        success: true,
+      });
+    } else {
+      // Increment the login attempt counter for wrong password
+      const foundUser = await User.findOneAndUpdate(
+        { _id: userId },
+        { $inc: { changePasswordAttempts: 1 } },
+        { new: true }
+      );
+
+      // Check if maximum login attempts exceeded
+      if (foundUser.changePasswordAttempts >= 3) {
+        return res.status(401).json({
+          message:
+            'Maximum change password attempts exceeded. Please register or use forgot password to be able to access your account.',
+          success: false,
+        });
+      }
+      return res.status(401).json({
+        message: 'The provided current password password is incorrect',
+        success: false,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Server error',
+      success: false,
+    });
+  }
+};
+
+//There is need for logout just to clear cookie if exists
+const logout = async (req, res) => {
+  // On client, also delete the accessToken
+  const cookies = req.cookies;
+  if (!cookies?.jwt) {
+    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+    return res.status(204).json({
+      message: 'The refreshToken is successfully cleared',
+      success: false,
+    });
+  }
+
+  const refreshToken = cookies.jwt;
+
+  // Is refreshToken in db?
+  const foundUser = await User.findOne({ refreshToken }).exec();
+  if (!foundUser) {
+    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+    return res.status(204).json({
+      message: 'The refreshToken is successfully cleared',
+      success: false,
+    });
+  }
+
+  // update user status & updateAt time
+  await User.findByIdAndUpdate(
+    foundUser._id,
+    { status: 'logout', updatedAt: Date.now() },
+    { new: true }
+  );
+
+  // Delete refreshToken in db
+  foundUser.refreshToken = foundUser.refreshToken.filter(
+    (rt) => rt !== refreshToken
+  );
+  const data = await foundUser.save();
+  console.log(data);
+
+  res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+  res.status(200).json({
+    data,
+    message: 'Cookie cleared',
+    success: true,
+  });
+};
+
 module.exports = {
   signup,
   login,
+  logout,
   resetPasswordLink,
+  resetPassword,
   forgotPassword,
   changePassword,
   emailVerification,

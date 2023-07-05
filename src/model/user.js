@@ -10,6 +10,7 @@ const UserSchema = new Schema(
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -19,19 +20,23 @@ const UserSchema = new Schema(
       type: String,
       default: 'no-image.png',
     },
-    role: {
-      type: String,
-      enum: ['admin', 'user'],
-      default: 'user',
-    },
-    isSubscribed: {
+    isVerified: {
       type: Boolean,
       default: false,
     },
-    isVerified: {
-      type: Boolean,
-      default: true,
+    loginAttempts: {
+      type: Number,
+      default: 0,
     },
+    resetPasswordAttempts: {
+      type: Number,
+      default: 0,
+    },
+    changePasswordAttempts: {
+      type: Number,
+      default: 0,
+    },
+    refreshToken: [String],
   },
   { timestamps: true }
 );

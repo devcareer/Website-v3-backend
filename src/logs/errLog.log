@@ -1,0 +1,2 @@
+20230705	22:52:30	9f2193fd-fb78-4112-a8a0-036c1d9a4ca5	UnprocessableEntityError: "password" is required	POST	/api/v1/auth/login	undefined
+20230705	22:55:32	332fedea-9edf-4975-ad63-a4f3c69b46dc	UnprocessableEntityError: "confirmPassword" is not allowed	POST	/api/v1/auth/signup	undefined
