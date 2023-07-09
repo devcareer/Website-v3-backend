@@ -53,7 +53,7 @@ const signup = async (req, res) => {
     });
 
     // Email the user a unique verification link
-    const url = `${process.env.APP_SERVICE_URL}/api/verify/${token}`;
+    const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
     await sendVerificationEmail(user.email, 'Email Verification\n', url);
 
     const data = {
