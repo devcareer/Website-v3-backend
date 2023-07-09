@@ -80,13 +80,6 @@ const projectSchema = new mongoose.Schema({
     required: true,
   },
 });
-// Define the Skill schema
-const skillSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-});
 
 // Define the Profile schema
 const profileSchema = new mongoose.Schema({
@@ -94,7 +87,8 @@ const profileSchema = new mongoose.Schema({
   educations: [educationSchema],
   experiences: [experienceSchema],
   projects: [projectSchema],
-  skills: [skillSchema],
+  // Define the Skill schema
+  skills: {type: [String], required: true,},
 });
 
 // Create the Profile model
