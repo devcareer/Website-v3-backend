@@ -12,13 +12,9 @@ router.route('/logout').delete(AuthController.logout);
 
 router.route('/forgot').post(AuthController.forgotPassword);
 
-router
-  .route('/verify/:token')
-  .get(ensuredAuthenticated, AuthController.emailVerification);
+router.route('/verify').get(AuthController.emailVerification);
 
-router
-  .route('/getResetLink')
-  .get(ensuredAuthenticated, AuthController.resetPasswordLink);
+router.route('/getResetLink').get(AuthController.resetPasswordLink);
 
 router
   .route('/reset')
