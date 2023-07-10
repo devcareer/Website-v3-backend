@@ -1,34 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-// Define the Personal Information Schema
-const personalSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    validate: [validator.isEmail, 'Please provide a valid email'],
-  },
-  phone: {
-    type: String,
-    required: [true, 'Phone number is required'],
-  },
-  linkedIn: {
-    type: String,
-    required: [true, 'LinkedIn URL is required'],
-  },
-  gitHub: {
-    type: String,
-    required: [true, 'GitHub URL is required'],
-  },
-});
 // Define the Education schema
 const educationSchema = new mongoose.Schema({
   institutionAttended: {
@@ -55,11 +27,15 @@ const experienceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  employmentDate: {
+  startDate: {
     type: Date,
     required: true,
   },
-  jobDescription: {
+  endDate: {
+    type: Date,
+    default: null,
+  },
+  status: {
     type: String,
     required: true,
   },
@@ -83,12 +59,35 @@ const projectSchema = new mongoose.Schema({
 
 // Define the Profile schema
 const profileSchema = new mongoose.Schema({
-  personal: [personalSchema],
+  // Define the Personal Information Schema
+  personal: {
+    fullName: {
+      type: String,
+      required: [true, 'Full name is required'],
+    },
+    about: {
+      type: String,
+      required: [true, 'About is required'],
+    },
+    jobTitle: {
+      type: String,
+      required: [true, 'Job title is required'],
+    },
+    location: {
+      type: String,
+      required: [true, 'Location is required'],
+    },
+    portfolioURL: {
+      type: String,
+      required: [true, 'Portfolio URL is required'],
+      validate: [validator.isURL, 'Please provide a valid URL'],
+    },
+  },
   educations: [educationSchema],
   experiences: [experienceSchema],
   projects: [projectSchema],
   // Define the Skill schema
-  skills: {type: [String], required: true,},
+  skills: { type: [String], required: true },
 });
 
 // Create the Profile model
