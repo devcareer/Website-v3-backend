@@ -4,7 +4,6 @@ const crossOrigin = require('cors');
 const pinoHTTP = require('pino-http');
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
-const cors = require('cors');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const logger = require('../src/middleware/pinoLogger');
@@ -24,8 +23,6 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 // allow cross-origin resource sharing
 app.use(crossOrigin());
-
-app.options('*', cors());
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
