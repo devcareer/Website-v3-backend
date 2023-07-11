@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+// const validator = require('validator');
 const validator = require('validator');
 
 // Define the Education schema
@@ -80,6 +81,7 @@ const profileSchema = new mongoose.Schema({
     portfolioURL: {
       type: String,
       required: [true, 'Portfolio URL is required'],
+      // validate: [validator.isURL, 'Please provide a valid URL'],
       validate: [validator.isURL, 'Please provide a valid URL'],
     },
   },

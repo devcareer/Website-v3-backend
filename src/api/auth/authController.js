@@ -48,7 +48,7 @@ const signup = async (req, res) => {
     await user.save();
 
     // Generate a token with the user's ID
-    const token = jwt.sign({ id: user._id }, process.env.JWT_TOKEN_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '1d',
     });
 
@@ -212,7 +212,7 @@ const emailVerification = async (req, res) => {
   // Verify the token from the URL
   let payload = null;
   try {
-    payload = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
+    payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
   } catch (error) {
     return res.status(500).json({ message: 'server error', success: false });
   }
@@ -271,7 +271,7 @@ const forgotPassword = async (req, res) => {
 
     const token = await jwt.sign(
       { id: foundUser._id },
-      process.env.JWT_TOKEN_SECRET,
+      process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: '5min',
       }
@@ -317,7 +317,7 @@ const resetPasswordLink = async (req, res) => {
 
     const token = await jwt.sign(
       { id: foundUser._id },
-      process.env.JWT_TOKEN_SECRET,
+      process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: '5min',
       }
@@ -363,7 +363,7 @@ const resetPassword = async (req, res) => {
     }
 
     // Verify the reset token
-    const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     // Find the user by their ID
     const foundUser = await User.findById(decoded.id)
