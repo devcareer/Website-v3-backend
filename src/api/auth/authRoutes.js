@@ -12,7 +12,7 @@ router.route('/logout').delete(AuthController.logout);
 
 router.route('/forgot').post(AuthController.forgotPassword);
 
-router.route('/verify').get(AuthController.emailVerification);
+router.route('/verify/:token').get(AuthController.emailVerification);
 
 router
   .route('/getResetLink')

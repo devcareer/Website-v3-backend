@@ -1,2 +1,5 @@
 20230705	22:52:30	9f2193fd-fb78-4112-a8a0-036c1d9a4ca5	UnprocessableEntityError: "password" is required	POST	/api/v1/auth/login	undefined
 20230705	22:55:32	332fedea-9edf-4975-ad63-a4f3c69b46dc	UnprocessableEntityError: "confirmPassword" is not allowed	POST	/api/v1/auth/signup	undefined
+20230710	20:55:43	d951c85b-e6a0-4eda-b566-2882dcb4c014	SyntaxError: Unexpected end of JSON input	GET	/api/v1/auth/verify/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YWM1NGVkYTQwNDcxM2U2MWE2NTljNiIsImlhdCI6MTY4OTAxNTUzMywiZXhwIjoxNjg5MTAxOTMzfQ.jAlJNN4xezhTxMpa9-RM26FCkBZoqHTDut3ggarxv3Q	undefined
+20230711	10:28:36	048daa55-4374-4063-902f-27b6f9cccd56	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
+20230711	10:30:15	ebeaf287-53f5-4d55-8255-771223fdf957	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
