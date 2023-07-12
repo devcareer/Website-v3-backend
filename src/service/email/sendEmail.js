@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
 module.exports.sendVerificationEmail = (_email, _subject, link) => {
   const mailOptions = {
     from: 'DevCareer <olaobey15@gmail.com>',
-    to: 'talk2james.uj@gmail.com',
+    to: _email,
     subject: 'Verify your email address for successful account activation',
     html: `
       <p>Please click the following link to verify your email and to complete your <strong>DevCareer</strong> registration account</p>
