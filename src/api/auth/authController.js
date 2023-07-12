@@ -8,7 +8,6 @@ const {
 } = require('../../service/email/sendEmail');
 
 const signup = async (req, res) => {
-  console.log(req.body);
   const { username, email, password, confirmPassword } = req.body;
   if (!username || !email || !password || !confirmPassword) {
     return res.status(409).json({

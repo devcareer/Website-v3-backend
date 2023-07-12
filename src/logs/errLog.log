@@ -3,3 +3,5 @@
 20230710	20:55:43	d951c85b-e6a0-4eda-b566-2882dcb4c014	SyntaxError: Unexpected end of JSON input	GET	/api/v1/auth/verify/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YWM1NGVkYTQwNDcxM2U2MWE2NTljNiIsImlhdCI6MTY4OTAxNTUzMywiZXhwIjoxNjg5MTAxOTMzfQ.jAlJNN4xezhTxMpa9-RM26FCkBZoqHTDut3ggarxv3Q	undefined
 20230711	10:28:36	048daa55-4374-4063-902f-27b6f9cccd56	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
 20230711	10:30:15	ebeaf287-53f5-4d55-8255-771223fdf957	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
+20230712	20:09:41	e5184f50-d5c3-4799-acab-aad4974d28f1	UnprocessableEntityError: "username" is required	POST	/api/v1/auth/signup	undefined
+20230712	20:09:49	504d0eab-3923-49b7-b86a-30e84d1f1955	UnprocessableEntityError: "username" is required	POST	/api/v1/auth/signup	undefined
