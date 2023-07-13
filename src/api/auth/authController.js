@@ -9,6 +9,7 @@ const {
 
 const signup = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+  console.log(req.body);
   if (!username || !email || !password || !confirmPassword) {
     return res.status(409).json({
       message: 'Username, email, and password are required',
