@@ -21,8 +21,8 @@ const transporter = nodemailer.createTransport({
 
 module.exports.sendVerificationEmail = (_email, _subject, link) => {
   const mailOptions = {
-    from: 'DevCareer <olaobey15@gmail.com>',
-    to: 'talk2james.uj@gmail.com',
+    from: `DevCareer <${process.env.EMAIL_USERNAME}>`,
+    to: _email,
     subject: 'Verify your email address for successful account activation',
     html: `
       <p>Please click the following link to verify your email and to complete your <strong>DevCareer</strong> registration account</p>
@@ -31,7 +31,7 @@ module.exports.sendVerificationEmail = (_email, _subject, link) => {
       
       <p style="margin-bottom:20px;">Click this link for active your account</p>
 
-      <a href="${link} style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Email</a>
+      <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Email</a>
       <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
 
         <p style="margin-bottom:0px;">Thank you</p>
@@ -50,9 +50,9 @@ module.exports.sendVerificationEmail = (_email, _subject, link) => {
 
 module.exports.resetPasswordMail = (_email, _subject, link) => {
   const mailOptions = {
-    from: 'DevCareer <olaobey15@gmail.com>',
-    to: 'Kenney9224@gmail.com',
-    subject: 'Reset Password',
+    from: `DevCareer <${process.env.EMAIL_USERNAME}>`,
+    to: _email,
+    subject: _subject,
     html: `
       <p>Please click the following link to reset your password in other to <strong>DevCareer</strong> login into your account</p>
       
@@ -60,7 +60,7 @@ module.exports.resetPasswordMail = (_email, _subject, link) => {
       
        <p style="margin-bottom:20px;">Click this link to reset your password</p>
       
-      <a href="${link} style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
+      <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
        <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
         <p style="margin-bottom:0px;">Thank you</p>
         <strong>DevCareer Support Team</strong>
@@ -78,9 +78,9 @@ module.exports.resetPasswordMail = (_email, _subject, link) => {
 
 module.exports.forgotPasswordMail = (_email, subject, link) => {
   const mailOptions = {
-    from: 'DevCareer <olaobey15@gmail.com>',
-    to: 'okoyecb@gmail.com',
-    subject: 'Forgot Password',
+    from: `DevCareer <${process.env.EMAIL_USERNAME}>`,
+    to: _email,
+    subject: 'Forgot Your Password',
     html: `
       <p>Please click the following forgot password link to be able to <strong>DevCareer</strong>reset your password</p>
       
@@ -91,7 +91,7 @@ module.exports.forgotPasswordMail = (_email, subject, link) => {
         <p style="margin-bottom:20px;">Click this link to activate reset password</p>
       
       
-      <a href="${link} style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
+      <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
        <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
         <p style="margin-bottom:0px;">Thank you</p>
         <strong>DevCareer Support Team</strong>

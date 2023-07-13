@@ -9,6 +9,7 @@ const {
 
 const signup = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+  console.log(req.body);
   if (!username || !email || !password || !confirmPassword) {
     return res.status(409).json({
       message: 'Username, email, and password are required',
@@ -327,7 +328,7 @@ const resetPasswordLink = async (req, res) => {
     const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
     await resetPasswordMail(
       foundUser.email,
-      'Reset Password\n',
+      'Reset Your Password',
       resetPasswordUrl
     );
 
