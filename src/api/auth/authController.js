@@ -327,7 +327,7 @@ const resetPasswordLink = async (req, res) => {
     const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
     await resetPasswordMail(
       foundUser.email,
-      'Reset Password\n',
+      'Reset Your Password',
       resetPasswordUrl
     );
 
