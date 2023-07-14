@@ -78,6 +78,7 @@ const signup = async (req, res) => {
       success: true,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       error: error.message,
       message: 'Server error',
