@@ -9,7 +9,6 @@ const {
 
 const signup = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
-  console.log(req.body);
   if (!username || !email || !password || !confirmPassword) {
     return res.status(409).json({
       message: 'Username, email, and password are required',
@@ -27,12 +26,22 @@ const signup = async (req, res) => {
 
   try {
     // Check if the user already exists
-    const existingUser = await User.findOne({ email }).exec();
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    }).exec();
+
     if (existingUser) {
-      return res.status(400).json({
-        message: 'User already exists',
-        success: false,
-      });
+      if (existingUser.email === email) {
+        return res.status(400).json({
+          message: 'Email already exists',
+          success: false,
+        });
+      } else {
+        return res.status(400).json({
+          message: 'Username already exists',
+          success: false,
+        });
+      }
     }
 
     // Hash the password
@@ -59,10 +68,7 @@ const signup = async (req, res) => {
 
     const data = {
       user: {
-        token,
-        url,
         isVerified: user.isVerified,
-        role: user.role,
       },
     };
 
@@ -73,6 +79,7 @@ const signup = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      error: error.message,
       message: 'Server error',
       success: false,
     });
@@ -81,11 +88,10 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   const cookies = req.cookies;
-  console.log(`cookie available at login: ${JSON.stringify(cookies)}`);
-  const { email, password } = req.body;
-  if (!email && !password) {
+  const { email, password, isVerified } = req.body;
+  if (!email || !password || isVerified === false) {
     return res.status(400).json({
-      message: 'All fields are required and you need to be verified.',
+      message: 'Email, password, and verified status are required fields.',
       success: false,
     });
   }
@@ -239,10 +245,7 @@ const emailVerification = async (req, res) => {
       message: 'The account has been verified successfully.',
       user: {
         verified: foundUser.isVerified,
-        _id: foundUser._id,
         username: foundUser.username,
-        email: foundUser.email,
-        avatar: foundUser.avatar,
       },
     });
   } catch (error) {
@@ -285,18 +288,17 @@ const forgotPassword = async (req, res) => {
       'Forgot Password\n',
       resetPasswordUrl
     );
-    console.log(token);
 
     // save update user
     await foundUser.save();
 
     return res.status(200).json({
-      data: foundUser,
       message: `The password was successfully reset`,
       success: true,
     });
   } catch (error) {
     return res.status(500).json({
+      error: error.message,
       message: 'server error',
       success: false,
     });
@@ -334,8 +336,6 @@ const resetPasswordLink = async (req, res) => {
 
     const data = {
       user: {
-        token,
-        resetPasswordUrl,
         resetPasswordMail,
       },
     };
