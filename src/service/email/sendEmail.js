@@ -80,7 +80,7 @@ module.exports.forgotPasswordMail = (_email, subject, link) => {
   const mailOptions = {
     from: `DevCareer <${process.env.EMAIL_USERNAME}>`,
     to: _email,
-    subject: 'Forgot Your Password',
+    subject: subject,
     html: `<p>Hello User,</p>
 
     <p>We have received a request to reset your password. To proceed with the password reset, please click the following link:</p>
