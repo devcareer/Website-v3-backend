@@ -89,17 +89,17 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   const cookies = req.cookies;
-  const { email, password, isVerified } = req.body;
-  if (!email || !password || isVerified === false) {
+  const { email, password } = req.body;
+  if (!email || !password) {
     return res.status(400).json({
-      message: 'Email, password, and verified status are required fields.',
+      message: 'Email and password are required fields.',
       success: false,
     });
   }
   try {
     // Check if the user exists
     const foundUser = await User.findOne({ email })
-      .select('+password +loginAttempts')
+      .select('+password +loginAttempts +isVerified')
       .exec();
     if (!foundUser) {
       return res.status(401).json({
@@ -107,6 +107,15 @@ const login = async (req, res) => {
         success: false,
       });
     }
+
+    // Check if the user is verified
+    if (!foundUser.isVerified) {
+      return res.status(401).json({
+        message: 'Please verify your email before logging in.',
+        success: false,
+      });
+    }
+
     // Validate the password
     const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     if (!isPasswordValid) {
