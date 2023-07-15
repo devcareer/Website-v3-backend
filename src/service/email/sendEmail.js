@@ -80,21 +80,19 @@ module.exports.forgotPasswordMail = (_email, subject, link) => {
   const mailOptions = {
     from: `DevCareer <${process.env.EMAIL_USERNAME}>`,
     to: _email,
-    subject: 'Forgot Your Password',
-    html: `
-      <p>Please click the following forgot password link to be able to <strong>DevCareer</strong>reset your password</p>
-      
-      <p>This link will expire in <strong> 5 minutes minute</strong>.</p>
-      
-       <p style="margin-bottom:20px;">Click this link for active your account</p>
-       
-        <p style="margin-bottom:20px;">Click this link to activate reset password</p>
-      
-      
-      <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
-       <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
-        <p style="margin-bottom:0px;">Thank you</p>
-        <strong>DevCareer Support Team</strong>
+    subject: subject,
+    html: `<p>Hello User,</p>
+
+    <p>We have received a request to reset your password. To proceed with the password reset, please click the following link:</p>
+    
+    <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Reset Password</a>
+    
+    <p>Please note that this link will expire in <strong>5 minutes</strong>.</p>
+    
+    <p>If you did not initiate this password reset request, please disregard this email or contact our support team immediately at support@devCareer.com.</p>
+    
+    <p>Best regards,</p>
+    <strong>DevCareer Support Team</strong>
     `,
   };
 
