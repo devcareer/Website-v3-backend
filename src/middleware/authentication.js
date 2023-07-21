@@ -33,7 +33,7 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
           message: 'UNKNOWN ACCESS! Authorization headers is missing/invalid.',
         });
       }
-      req.profileUser = dec.UserInfo;
+      req.body.userId = dec.UserInfo.userId;
       next();
     });
   } catch (error) {
