@@ -150,7 +150,6 @@ const login = async (req, res) => {
           verified: foundUser.isVerified,
           updatedAt: Date.now(),
           new: true,
-          username: foundUser.username,
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -187,7 +186,6 @@ const login = async (req, res) => {
     // Saving refreshToken with current user
     foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
     const result = await foundUser.save();
-    console.log(result);
 
     // Creates Secure Cookie with refresh token
     res.cookie('jwt', newRefreshToken, {
@@ -207,6 +205,7 @@ const login = async (req, res) => {
     // Successful login
     return res.status(200).json({
       accessToken,
+      result,
       message: 'Login is successful',
       success: true,
     });
@@ -435,7 +434,7 @@ const resetPassword = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const { currentPassword, newPassword, userId } = req.body;
+  const { currentPassword, newPassword, userId} = req.body;
   if (currentPassword === newPassword) {
     return res.status(400).json({
       message: 'You can not use old password as a new password',
@@ -458,7 +457,7 @@ const changePassword = async (req, res) => {
 
       // Increment the reset password attempts counter
       await User.findOneAndUpdate(
-        { _id: userId },
+        { _id:userId},
         { $inc: { changePasswordAttempts: 1 } },
         { new: true }
       );
@@ -495,6 +494,7 @@ const changePassword = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: 'Server error',
+      error: error.message,
       success: false,
     });
   }

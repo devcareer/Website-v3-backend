@@ -6,3 +6,7 @@
 20230712	20:09:41	e5184f50-d5c3-4799-acab-aad4974d28f1	UnprocessableEntityError: "username" is required	POST	/api/v1/auth/signup	undefined
 20230712	20:09:49	504d0eab-3923-49b7-b86a-30e84d1f1955	UnprocessableEntityError: "username" is required	POST	/api/v1/auth/signup	undefined
 20230715	03:59:50	49bd3364-3511-4c16-aaa2-f6ca9204f3e1	UnprocessableEntityError: "isVerified" is required	POST	/api/v1/auth/login	undefined
+20230721	06:01:50	e1401290-0b14-40fb-bc02-9d2384c21d85	UnprocessableEntityError: "userId" is required	POST	/api/v1/auth/change	undefined
+20230721	11:11:45	fa1fa609-7852-4ad6-a355-aa8e18c9df7c	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
+20230721	11:44:43	e469d530-5e48-479b-8892-3697c4427370	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
+20230721	13:31:56	1a9e1b29-529d-4fa4-9847-893ca1050036	UnprocessableEntityError: "userId" is not allowed	POST	/api/v1/auth/change	undefined
