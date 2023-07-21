@@ -34,6 +34,7 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
         });
       }
       req.body.userId = dec.UserInfo.userId;
+      req.body.username = dec.UserInfo.username;
       next();
     });
   } catch (error) {
