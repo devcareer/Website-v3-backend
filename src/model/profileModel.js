@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-// const validator = require('validator');
+const validator = require('validator');
 // const validator = require('validator');
 
 // Define the Education schema
 const educationSchema = new mongoose.Schema({
-  institutionAttended: {
+  schoolName: {
     type: String,
     required: true,
   },
@@ -12,8 +12,16 @@ const educationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  graduationDate: {
-    type: Date,
+  course: {
+    type: String,
+    required: true,
+  },
+  startYear: {
+    type: String,
+    required: true,
+  },
+  endYear: {
+    type: String,
     required: true,
   },
 });
@@ -28,6 +36,10 @@ const experienceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  employmentType: {
+    type: String,
+    required: true,
+  },
   startDate: {
     type: Date,
     required: true,
@@ -35,10 +47,6 @@ const experienceSchema = new mongoose.Schema({
   endDate: {
     type: Date,
     default: null,
-  },
-  status: {
-    type: String,
-    required: true,
   },
 });
 
@@ -51,6 +59,7 @@ const projectSchema = new mongoose.Schema({
   projectURL: {
     type: String,
     required: true,
+    validate: [validator.isURL, 'Please provide a project URL'],
   },
   projectDescription: {
     type: String,
@@ -81,8 +90,7 @@ const profileSchema = new mongoose.Schema({
     portfolioURL: {
       type: String,
       required: [true, 'Portfolio URL is required'],
-      // validate: [validator.isURL, 'Please provide a valid URL'],
-      // validate: [validator.isURL, 'Please provide a valid URL'],
+      validate: [validator.isURL, 'Please provide a valid URL'],
     },
   },
   educations: [educationSchema],
