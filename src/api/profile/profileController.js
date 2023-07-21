@@ -28,10 +28,7 @@ async function createProfile(req, res) {
 async function getProfile(req, res) {
   const loginUser = await Profile.find({ userId: req.body.userId });
   if (loginUser.length === 0) {
-    res.status(204).json({
-      status: 'success',
-      message: 'No Content',
-    }); // No Content
+    res.status(204).json({}); // No Content
   }
   res.status(200).json({
     status: 'success',
