@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-// const validator = require('validator');
 
 // Define the Education schema
 const educationSchema = new mongoose.Schema({
@@ -70,6 +69,10 @@ const projectSchema = new mongoose.Schema({
 // Define the Profile schema
 const profileSchema = new mongoose.Schema({
   // Define the Personal Information Schema
+  userId: {
+    type: String,
+      required: [true, 'The user ID is required'],
+  },
   personal: {
     fullName: {
       type: String,
