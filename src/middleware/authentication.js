@@ -26,13 +26,15 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
       }
 
       // check if user exists
-      const user = await User.findById(dec.id);
+      const user = await User.findById(dec.UserInfo.userId);
 
       if (!user) {
         return res.status(404).json({
           message: 'UNKNOWN ACCESS! Authorization headers is missing/invalid.',
         });
       }
+      req.body.userId = dec.UserInfo.userId;
+      req.body.username = dec.UserInfo.username;
       next();
     });
   } catch (error) {
