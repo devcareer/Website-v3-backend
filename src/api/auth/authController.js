@@ -203,6 +203,7 @@ const login = async (req, res) => {
     );
 
     // Successful login
+    console.log(accessToken);
     return res.status(200).json({
       accessToken,
       result,
@@ -216,7 +217,6 @@ const login = async (req, res) => {
       success: false,
     });
   }
-  console.log(accessToken);
 };
 
 const emailVerification = async (req, res) => {
