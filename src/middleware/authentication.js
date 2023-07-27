@@ -7,7 +7,7 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
     // get access token form authorization headers
     const { authorization } = req.headers;
 
-    console.log(authorization);
+    console.log('This is the authorization token ' + authorization);
 
     if (!authorization?.startsWith('Bearer ')) {
       return res.status(403).json({
