@@ -7,6 +7,8 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
     // get access token form authorization headers
     const { authorization } = req.headers;
 
+    console.log(authorization);
+
     if (!authorization?.startsWith('Bearer ')) {
       return res.status(403).json({
         message: 'ACCESS FORBIDDEN! Authorization headers is required.',

@@ -216,6 +216,7 @@ const login = async (req, res) => {
       success: false,
     });
   }
+  console.log(accessToken);
 };
 
 const emailVerification = async (req, res) => {
@@ -434,7 +435,7 @@ const resetPassword = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const { currentPassword, newPassword, userId} = req.body;
+  const { currentPassword, newPassword, userId } = req.body;
   if (currentPassword === newPassword) {
     return res.status(400).json({
       message: 'You can not use old password as a new password',
@@ -457,7 +458,7 @@ const changePassword = async (req, res) => {
 
       // Increment the reset password attempts counter
       await User.findOneAndUpdate(
-        { _id:userId},
+        { _id: userId },
         { $inc: { changePasswordAttempts: 1 } },
         { new: true }
       );
