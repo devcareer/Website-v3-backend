@@ -40,11 +40,11 @@ const experienceSchema = new mongoose.Schema({
     required: true,
   },
   startDate: {
-    type: Date,
+    type: String,
     required: true,
   },
   endDate: {
-    type: Date,
+    type: String,
     default: null,
   },
 });
@@ -71,7 +71,7 @@ const profileSchema = new mongoose.Schema({
   // Define the Personal Information Schema
   userId: {
     type: String,
-      required: [true, 'The user ID is required'],
+    required: [true, 'The user ID is required'],
   },
   personal: {
     fullName: {
