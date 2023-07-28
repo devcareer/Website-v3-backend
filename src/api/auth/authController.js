@@ -249,7 +249,6 @@ const emailVerification = async (req, res) => {
     }
 
     // Update user verification status to true
-    console.log('We are here');
     foundUser.isVerified = true;
     await foundUser.save();
     // Redirect user to the frontend login page
