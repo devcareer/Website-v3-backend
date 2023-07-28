@@ -249,8 +249,12 @@ const emailVerification = async (req, res) => {
     }
 
     // Update user verification status to true
+    console.log('We are here');
     foundUser.isVerified = true;
     await foundUser.save();
+    // Redirect user to the frontend login page
+    return res.redirect(`${process.env.EMAIL_VERIFY_BASE_URL}`);
+    /**
     return res.status(200).json({
       message: 'The account has been verified successfully.',
       user: {
@@ -258,6 +262,7 @@ const emailVerification = async (req, res) => {
         username: foundUser.username,
       },
     });
+    **/
   } catch (error) {
     res.status(500).json({
       message: error.message,
