@@ -5,7 +5,31 @@ async function createProfile(req, res) {
   const user = req.body.userId;
   // const savedProfile = await profile.save();
   console.log(req.body);
-  await Profile.updateOne({ userId: user }, req.body, { upsert: true })
+
+  function removeIdKeys(data) {
+    if (typeof data !== 'object' || data === null) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(removeIdKeys);
+    }
+
+    const newData = {};
+    for (const key in data) {
+      if (key !== '_id') {
+        newData[key] = removeIdKeys(data[key]);
+      }
+    }
+
+    return newData;
+  }
+
+  const data = removeIdKeys(req.body);
+
+  console.log(data);
+
+  await Profile.updateOne({ userId: user }, data, { upsert: true })
     .then((doc) => {
       if (doc.upsertedCount === 1) {
         return res.status(200).json({
@@ -20,6 +44,7 @@ async function createProfile(req, res) {
       }
     })
     .catch((err) => {
+      console.log(err);
       return res
         .status(500)
         .json({ status: 'failed', error: 'Internal Server Error' });
