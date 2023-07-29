@@ -4,18 +4,19 @@ const User = require('../../model/user');
 async function createProfile(req, res) {
   const user = req.body.userId;
   // const savedProfile = await profile.save();
+  console.log(req.body);
   await Profile.updateOne({ userId: user }, req.body, { upsert: true })
     .then((doc) => {
       if (doc.upsertedCount === 1) {
         return res.status(200).json({
-          status: "success",
-          message: "profile created successfully"
-        })
+          status: 'success',
+          message: 'profile created successfully',
+        });
       } else {
         return res.status(200).json({
-          status: "success",
-          message: "profile updated successfully"
-        })
+          status: 'success',
+          message: 'profile updated successfully',
+        });
       }
     })
     .catch((err) => {
