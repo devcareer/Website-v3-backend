@@ -47,6 +47,10 @@ const experienceSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  tillPresent: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Define the Project schema
