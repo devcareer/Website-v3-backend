@@ -203,7 +203,7 @@ const login = async (req, res) => {
     );
 
     // Successful login
-    console.log('This is the login token ' + accessToken);
+    // console.log('This is the login token ' + accessToken);
     return res.status(200).json({
       accessToken,
       result,

@@ -77,6 +77,10 @@ const profileSchema = new mongoose.Schema({
     type: String,
     required: [true, 'The user ID is required'],
   },
+  username: {
+    type: String,
+    required: [true, 'The username is required'],
+  },
   personal: {
     fullName: {
       type: String,
