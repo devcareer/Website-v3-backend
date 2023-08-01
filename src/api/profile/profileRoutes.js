@@ -8,4 +8,6 @@ router
   .patch(ensuredAuthenticated, profileController.createProfile)
   .get(ensuredAuthenticated, profileController.getProfile);
 
+router.get('/:username', profileController.profileLinkDetails);
+
 module.exports = router;

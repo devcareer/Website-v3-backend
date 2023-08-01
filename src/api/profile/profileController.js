@@ -1,33 +1,33 @@
 const Profile = require('../../model/profileModel');
 const User = require('../../model/user');
 
+function removeIdKeys(data) {
+  if (typeof data !== 'object' || data === null) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(removeIdKeys);
+  }
+
+  const newData = {};
+  for (const key in data) {
+    if (key !== '_id') {
+      newData[key] = removeIdKeys(data[key]);
+    }
+  }
+
+  return newData;
+}
+
 async function createProfile(req, res) {
   const user = req.body.userId;
   // const savedProfile = await profile.save();
-  console.log(req.body);
-
-  function removeIdKeys(data) {
-    if (typeof data !== 'object' || data === null) {
-      return data;
-    }
-
-    if (Array.isArray(data)) {
-      return data.map(removeIdKeys);
-    }
-
-    const newData = {};
-    for (const key in data) {
-      if (key !== '_id') {
-        newData[key] = removeIdKeys(data[key]);
-      }
-    }
-
-    return newData;
-  }
+  // console.log(req.body);
 
   const data = removeIdKeys(req.body);
 
-  console.log(data);
+  // console.log(data);
 
   await Profile.updateOne({ userId: user }, data, { upsert: true })
     .then((doc) => {
@@ -56,13 +56,42 @@ async function getProfile(req, res) {
   if (loginUser.length === 0) {
     return res.status(204).json({}); // No Content
   }
+
   return res.status(200).json({
     status: 'success',
     profile: loginUser,
   });
 }
 
+async function profileLinkDetails(req, res) {
+  const { username } = req.params;
+
+  try {
+    const profileUser = await Profile.findOne({ username: username });
+    if (!profileUser) {
+      return res.status(404).json({
+        status: 'failed',
+        message: 'User not found',
+      });
+    }
+
+    // If the database query is successful, send the profile data in the response
+    return res.status(200).json({
+      status: 'success',
+      profile: profileUser,
+    });
+  } catch (error) {
+    console.error('Database Error:', error);
+    // Respond with an appropriate error message
+    return res.status(500).json({
+      status: 'error',
+      message: 'An error occurred while fetching the profile data',
+    });
+  }
+}
+
 module.exports = {
   createProfile,
   getProfile,
+  profileLinkDetails,
 };
