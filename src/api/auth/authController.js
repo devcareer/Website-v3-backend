@@ -44,8 +44,34 @@ const signup = async (req, res) => {
       }
     }
 
+    if (existingUser && existingUser.isVerified) {
+      return res.status(400).json({
+        message: 'Email already exists and is already verified.',
+        success: false,
+      });
+    }
+
+    if (existingUser && !existingUser.isVerified) {
+      // Check if the verification token has expired
+      const currentTime = Date.now(); // Convert milliseconds to seconds
+      if (existingUser.emailVerificationTokenExpiresAt < currentTime) {
+        // The token has expired, delete the previous user account
+        await User.findByIdAndDelete(existingUser._id).exec();
+      } else {
+        return res.status(400).json({
+          message: 'Email already exists, and verification token is still valid.',
+          success: false,
+        });
+      }
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate a token with the user's ID
+    const verificationToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '24h',
+    });
 
     // Create a new user
     const user = new User({
@@ -53,17 +79,14 @@ const signup = async (req, res) => {
       email,
       password: hashedPassword,
       verified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationTokenExpiresAt: Date.now() + 180 * 1000, // 24 hours from now
     });
 
     await user.save();
 
-    // Generate a token with the user's ID
-    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '1d',
-    });
-
     // Email the user a unique verification link
-    const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
+    const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${verificationToken}`;
     await sendVerificationEmail(user.email, 'Email Verification\n', url);
 
     const data = {
@@ -164,29 +187,6 @@ const login = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Changed to let keyword
-    let newRefreshTokenArray = !cookies?.jwt
-      ? foundUser.refreshToken
-      : foundUser.refreshToken.filter((rt) => rt !== cookies.jwt);
-    if (cookies?.jwt) {
-      const refreshToken = cookies.jwt;
-      const foundToken = await User.findOne({ refreshToken }).exec();
-      // Detected refresh token reuse!
-      if (!foundToken) {
-        console.log('attempted refresh token reuse at login!');
-        // clear out ALL previous refresh tokens
-        newRefreshTokenArray = [];
-      }
-      res.clearCookie('jwt', {
-        httpOnly: true,
-        sameSite: 'None',
-        secure: true,
-      });
-    }
-    // Saving refreshToken with current user
-    foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-    const result = await foundUser.save();
-
     // Creates Secure Cookie with refresh token
     res.cookie('jwt', newRefreshToken, {
       httpOnly: true,
@@ -203,10 +203,8 @@ const login = async (req, res) => {
     );
 
     // Successful login
-    console.log('This is the login token ' + accessToken);
     return res.status(200).json({
       accessToken,
-      result,
       message: 'Login is successful',
       success: true,
     });
@@ -516,32 +514,13 @@ const logout = async (req, res) => {
       success: false,
     });
   }
-
-  const refreshToken = cookies.jwt;
-
-  // Is refreshToken in db?
-  const foundUser = await User.findOne({ refreshToken }).exec();
-  if (!foundUser) {
-    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
-    return res.status(204).json({
-      message: 'The refreshToken is successfully cleared',
-      success: false,
-    });
-  }
-
+  
   // update user status & updateAt time
   await User.findByIdAndUpdate(
     foundUser._id,
     { status: 'logout', updatedAt: Date.now() },
     { new: true }
   );
-
-  // Delete refreshToken in db
-  foundUser.refreshToken = foundUser.refreshToken.filter(
-    (rt) => rt !== refreshToken
-  );
-  const data = await foundUser.save();
-  console.log(data);
 
   res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
   res.status(200).json({
