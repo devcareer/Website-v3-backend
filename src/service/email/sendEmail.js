@@ -27,12 +27,12 @@ module.exports.sendVerificationEmail = (_email, _subject, link) => {
     html: `
       <p>Please click the following link to verify your email and to complete your <strong>DevCareer</strong> registration account</p>
       
-      <p>This link will expire in <strong> 5 minutes</strong>.</p>
+      <p>This link will expire in <strong> 24 hours</strong>.</p>
       
       <p style="margin-bottom:20px;">Click this link for active your account</p>
 
       <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Email</a>
-      <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
+      <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devcareer.io</p>
 
         <p style="margin-bottom:0px;">Thank you</p>
         <strong>DevCareer Support Team</strong>
@@ -56,12 +56,12 @@ module.exports.resetPasswordMail = (_email, _subject, link) => {
     html: `
       <p>Please click the following link to reset your password in other to <strong>DevCareer</strong> login into your account</p>
       
-      <p>This link will expire in <strong> 5 minutes minute</strong>.</p>
+      <p>This link will expire in <strong> 5 minutes</strong>.</p>
       
        <p style="margin-bottom:20px;">Click this link to reset your password</p>
       
       <a href="${link}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Login</a>
-       <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devCareer.com</p>
+       <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@devcareer.io</p>
         <p style="margin-bottom:0px;">Thank you</p>
         <strong>DevCareer Support Team</strong>
     `,
@@ -89,7 +89,7 @@ module.exports.forgotPasswordMail = (_email, subject, link) => {
     
     <p>Please note that this link will expire in <strong>5 minutes</strong>.</p>
     
-    <p>If you did not initiate this password reset request, please disregard this email or contact our support team immediately at support@devCareer.com.</p>
+    <p>If you did not initiate this password reset request, please disregard this email or contact our support team immediately at support@devcareer.io.</p>
     
     <p>Best regards,</p>
     <strong>DevCareer Support Team</strong>
