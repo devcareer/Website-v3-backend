@@ -194,9 +194,25 @@ const login = async (req, res) => {
       { new: true }
     );
 
+    const data = {
+    user: {
+      userId: foundUser._id,
+      username: foundUser.username,
+      email: foundUser.email,
+      avatar: foundUser.avatar,
+      verified: foundUser.isVerified,
+      loginAttempts: foundUser.loginAttempts,
+      resetPasswordAttempts:foundUser.resetPasswordAttempts,
+      changePasswordAttempts: foundUser.changePasswordAttempts,
+      emailVerificationToken: foundUser.emailVerificationToken,
+      emailVerificationTokenExpiresAt: foundUser.emailVerificationTokenExpiresAt,
+    }
+    }
+
     // Successful login
     console.log('This is the login token ' + accessToken);
     return res.status(200).json({
+      data,
       accessToken,
       message: 'Login is successful',
       success: true,
