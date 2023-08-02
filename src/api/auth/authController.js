@@ -30,25 +30,40 @@ const signup = async (req, res) => {
       $or: [{ email }, { username }],
     }).exec();
 
-    if (existingUser && !existingUser.isVerified) {
-      // Check if the verification token has expired
-      const currentTime = Date.now(); // Convert milliseconds to seconds
-      if (existingUser.emailVerificationTokenExpiresAt < currentTime) {
-        // The token has expired, delete the previous user account
-        await User.findByIdAndDelete(existingUser._id).exec();
+    if (existingUser) {
+      if (existingUser.email === email) {
+        // Email already exists
+        if (existingUser.isVerified) {
+          return res.status(400).json({
+            message: 'Email already exists and is already verified.',
+            success: false,
+          });
+        } else {
+          // Check if the verification token has expired
+          const currentTime = Date.now(); // Convert milliseconds to seconds
+          if (existingUser.emailVerificationTokenExpiresAt < currentTime) {
+            // The token has expired, delete the previous user account
+            await User.findByIdAndDelete(existingUser._id).exec();
+          } else {
+            return res.status(400).json({
+              message: 'Email already exists, and verification token is still valid.',
+              success: false,
+            });
+          }
+        }
       } else {
         return res.status(400).json({
-          message: 'Email already exists, and verification token is still valid.',
+          message: 'Username already exists',
           success: false,
         });
       }
     }
-
+  
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a token with the 
-    const verificationToken = jwt.sign({email: existingUser.email }, process.env.ACCESS_TOKEN_SECRET, {
+    const verificationToken = jwt.sign({email }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '24h',
     });
 
