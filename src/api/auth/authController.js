@@ -62,25 +62,23 @@ const signup = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a token with the 
-    const verificationToken = jwt.sign({email }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '24h',
-    });
-
     // Create a new user
     const user = new User({
       username,
       email,
       password: hashedPassword,
       verified: false,
-      emailVerificationToken: verificationToken,
       emailVerificationTokenExpiresAt: Date.now() + 180 * 1000, // 24 hours from now
     });
-
     await user.save();
 
+    // Generate a token with the 
+    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '3min',
+    });
+
     // Email the user a unique verification link
-    const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${verificationToken}`;
+    const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
     await sendVerificationEmail(user.email, 'Email Verification\n', url);
 
     const data = {
@@ -204,13 +202,11 @@ const login = async (req, res) => {
       loginAttempts: foundUser.loginAttempts,
       resetPasswordAttempts:foundUser.resetPasswordAttempts,
       changePasswordAttempts: foundUser.changePasswordAttempts,
-      emailVerificationToken: foundUser.emailVerificationToken,
       emailVerificationTokenExpiresAt: foundUser.emailVerificationTokenExpiresAt,
     }
     }
 
     // Successful login
-    console.log('This is the login token ' + accessToken);
     return res.status(200).json({
       data,
       accessToken,
@@ -236,12 +232,13 @@ const emailVerification = async (req, res) => {
   let payload = null;
   try {
     payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
   } catch (error) {
     return res.status(500).json({ message: 'server error', success: false });
   }
   try {
     //Find user with matching ID
-    const foundUser = await User.findOne({ _id: payload.id }).exec();
+    const foundUser = await User.findOne({ id: payload.id }).exec();
     if (!foundUser) {
       return res.status(404).json({
         message: 'User does not  exists',
