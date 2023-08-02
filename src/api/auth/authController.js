@@ -270,7 +270,7 @@ const emailVerification = async (req, res) => {
     **/
   } catch (error) {
     res.status(500).json({
-      message: error.message,
+      message: 'server error',
       success: false,
     });
   }
@@ -318,7 +318,6 @@ const forgotPassword = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      error: error.message,
       message: 'server error',
       success: false,
     });
@@ -367,7 +366,6 @@ const resetPasswordLink = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: 'Server error',
-      error: error.message,
       success: false,
     });
   }
@@ -464,17 +462,11 @@ const changePassword = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(currentPassword, foundUser.password);
     if (isMatch) {
+      // Passwords match, update the password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      // Increment the reset password attempts counter
-      await User.findOneAndUpdate(
-        { _id: userId },
-        { $inc: { changePasswordAttempts: 1 } },
-        { new: true }
-      );
-
       foundUser.password = hashedPassword;
-
+      // Reset the change password attempts counter
+      foundUser.changePasswordAttempts = 0;
       await foundUser.save();
 
       return res.status(200).json({
@@ -482,7 +474,7 @@ const changePassword = async (req, res) => {
         success: true,
       });
     } else {
-      // Increment the login attempt counter for wrong password
+      // Passwords don't match, increment the change password attempts counter
       const foundUser = await User.findOneAndUpdate(
         { _id: userId },
         { $inc: { changePasswordAttempts: 1 } },
@@ -505,7 +497,6 @@ const changePassword = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: 'Server error',
-      error: error.message,
       success: false,
     });
   }
