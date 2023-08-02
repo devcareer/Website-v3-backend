@@ -398,14 +398,14 @@ const resetPassword = async (req, res) => {
     // Check if the provided password matches the user's current password
     const isMatch = await bcrypt.compare(newPassword, foundUser.password);
     if (isMatch) {
-      // Increment the login attempt counter for wrong password
+      // Increment the reset passwordAttempt counter for wrong password
       const updatedUser = await User.findOneAndUpdate(
         { _id: decoded.id },
         { $inc: { resetPasswordAttempts: 1 } },
         { new: true }
       );
 
-      // Check if maximum login attempts exceeded
+      // Check if maximum reset passwordAttempt exceeded
       if (updatedUser.resetPasswordAttempts >= 3) {
         return res.status(401).json({
           message:
@@ -481,7 +481,7 @@ const changePassword = async (req, res) => {
         { new: true }
       );
 
-      // Check if maximum login attempts exceeded
+      // Check if maximum change password attempts exceeded
       if (foundUser.changePasswordAttempts >= 3) {
         return res.status(401).json({
           message:
