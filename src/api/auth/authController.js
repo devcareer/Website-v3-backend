@@ -30,27 +30,6 @@ const signup = async (req, res) => {
       $or: [{ email }, { username }],
     }).exec();
 
-    if (existingUser) {
-      if (existingUser.email === email) {
-        return res.status(400).json({
-          message: 'Email already exists',
-          success: false,
-        });
-      } else {
-        return res.status(400).json({
-          message: 'Username already exists',
-          success: false,
-        });
-      }
-    }
-
-    if (existingUser && existingUser.isVerified) {
-      return res.status(400).json({
-        message: 'Email already exists and is already verified.',
-        success: false,
-      });
-    }
-
     if (existingUser && !existingUser.isVerified) {
       // Check if the verification token has expired
       const currentTime = Date.now(); // Convert milliseconds to seconds
@@ -68,8 +47,8 @@ const signup = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a token with the user's ID
-    const verificationToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+    // Generate a token with the 
+    const verificationToken = jwt.sign({email: existingUser.email }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '24h',
     });
 
@@ -103,7 +82,6 @@ const signup = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      error: error.message,
       message: 'Server error',
       success: false,
     });
@@ -111,7 +89,6 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const cookies = req.cookies;
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({
@@ -212,7 +189,6 @@ const login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
-      error: error.message,
       success: false,
     });
   }
