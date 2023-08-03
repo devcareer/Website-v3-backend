@@ -67,15 +67,16 @@ const signup = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      verified: false,
-      emailVerificationTokenExpiresAt: Date.now() + 180 * 1000, // 24 hours from now
+      isVerified: false,
+      emailVerificationTokenExpiresAt: Date.now() + 180 * 1000, // 3 minutes from now
     });
     await user.save();
 
-    // Generate a token with the 
-    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '3min',
+    // Generate a token with the ID
+    const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '3m',
     });
+    console.log('My valid toke:', token)
 
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
@@ -207,6 +208,7 @@ const login = async (req, res) => {
     }
 
     // Successful login
+    console.log('This is the login token ' + accessToken);
     return res.status(200).json({
       data,
       accessToken,
@@ -225,35 +227,46 @@ const emailVerification = async (req, res) => {
   const { token } = req.params;
   if (!token) {
     return res.status(422).json({
-      message: 'Missing require token',
+      message: 'Missing required token',
     });
   }
-  // Verify the token from the URL
-  let payload = null;
-  try {
-    payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-  } catch (error) {
-    return res.status(500).json({ message: 'server error', success: false });
-  }
   try {
-    //Find user with matching ID
-    const foundUser = await User.findOne({ id: payload.id }).exec();
+    // Verify the token from the URL
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    // Find user with matching ID
+    const foundUser = await User.findOne({ _id: payload._id }).exec();
     if (!foundUser) {
       return res.status(404).json({
-        message: 'User does not  exists',
+        message: 'User does not exist',
       });
     }
+
     if (foundUser.isVerified) {
+      console.log('User is already verified');
       return res.status(400).json({
         message: 'This user has already been verified.',
         foundUser,
       });
     }
 
+    // Check if the verification token has expired
+    const currentTime = Date.now();
+    const tokenExpirationTime = foundUser.emailVerificationTokenExpiresAt;
+    if (!tokenExpirationTime || tokenExpirationTime < currentTime) {
+      console.log('Token has expired:', tokenExpirationTime, currentTime);
+      return res.status(400).json({
+        message: 'Verification token has expired.',
+      });
+    }
+
     // Update user verification status to true
     foundUser.isVerified = true;
     await foundUser.save();
+
+    console.log('User verification success:', foundUser);
+
     // Redirect user to the frontend login page
     return res.redirect(`${process.env.EMAIL_VERIFY_BASE_URL}`);
     /**
@@ -266,10 +279,26 @@ const emailVerification = async (req, res) => {
     });
     **/
   } catch (error) {
-    res.status(500).json({
-      message: 'server error',
-      success: false,
-    });
+    if (error instanceof jwt.TokenExpiredError) {
+      console.log('Token has expired:', error);
+      return res.status(400).json({
+        message: 'Verification token has expired.',
+        success: false,
+        expiredAt: error.expiredAt, // Include the expiredAt timestamp in the response
+      });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      console.log('Other token verification error:', error);
+      return res.status(400).json({
+        message: 'Invalid verification token.',
+        success: false,
+      });
+    } else {
+      console.log('Other error:', error);
+      return res.status(500).json({
+        message: 'Server error',
+        success: false,
+      });
+    }
   }
 };
 
