@@ -22,6 +22,7 @@ const educationSchema = new mongoose.Schema({
   endYear: {
     type: String,
     required: true,
+    default: null,
   },
 });
 

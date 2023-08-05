@@ -57,6 +57,9 @@ async function getProfile(req, res) {
     return res.status(204).json({}); // No Content
   }
 
+  sortEducationAndExperience(loginUser[0]);
+
+  console.log(loginUser);
   return res.status(200).json({
     status: 'success',
     profile: loginUser,
@@ -89,6 +92,20 @@ async function profileLinkDetails(req, res) {
     });
   }
 }
+
+const sortEducationAndExperience = (userDetails) => {
+  userDetails.educations.sort(
+    (a, b) => parseInt(b.endYear) - parseInt(a.endYear)
+  );
+
+  userDetails.experiences.sort((a, b) => {
+    if (a.tillPresent === b.tillPresent) {
+      return new Date(b.endDate) - new Date(a.endDate);
+    } else {
+      return b.tillPresent - a.tillPresent;
+    }
+  });
+};
 
 module.exports = {
   createProfile,
