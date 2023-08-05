@@ -78,6 +78,7 @@ async function profileLinkDetails(req, res) {
       });
     }
 
+    sortEducationAndExperience(profileUser);
     // If the database query is successful, send the profile data in the response
     return res.status(200).json({
       status: 'success',
