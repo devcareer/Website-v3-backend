@@ -76,20 +76,18 @@ const signup = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '3m',
     });
-    console.log('My valid toke:', token)
+    console.log('My valid token:', token)
 
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
     await sendVerificationEmail(user.email, 'Email Verification\n', url);
 
-    const data = {
-      user: {
+    const userInfo = {
         isVerified: user.isVerified,
-      },
-    };
+      };
 
     return res.status(201).json({
-      data,
+       userInfo,
       message: `Account successfully created and verification email has been sent to ${user.email}`,
       success: true,
     });
@@ -113,7 +111,7 @@ const login = async (req, res) => {
   try {
     // Check if the user exists
     const foundUser = await User.findOne({ email })
-      .select('+password +loginAttempts +isVerified')
+      .select('+password +loginAttempts +isVerified +status')
       .exec();
     if (!foundUser) {
       return res.status(401).json({
@@ -124,8 +122,10 @@ const login = async (req, res) => {
 
     // Check if the user is verified
     if (!foundUser.isVerified) {
-      return res.status(401).json({
-        message: 'Please verify your email before logging in.',
+      foundUser.status = 'Onboard'; // Change the status to 'Onboard' if the user is not verified
+      await foundUser.save(); // Save the updated status to the database
+      return res.status(404).json({
+        message: 'User does not exit.',
         success: false,
       });
     }
@@ -139,8 +139,14 @@ const login = async (req, res) => {
         { $inc: { loginAttempts: 1 } },
         { new: true }
       );
+      // User is verified, allow login
+    foundUser.status = 'Active'; // Change the status to 'Active' after successful login and email verification
+    await foundUser.save(); // Save the updated status to the database
+
       // Check if maximum login attempts exceeded
       if (updatedUser.loginAttempts >= 3) {
+         foundUser.status = 'Disabled'; // Change the status to 'Disabled' if login attempts exceed the limit
+      await foundUser.save(); // Save the updated status to the database
         return res.status(401).json({
           message:
             'Maximum login attempts exceeded. Please register or use forgot password to be able to access your account.',
@@ -161,6 +167,7 @@ const login = async (req, res) => {
           username: foundUser.username,
           email: foundUser.email,
           avatar: foundUser.avatar,
+          status: foundUser.status,
           verified: foundUser.isVerified,
           updatedAt: Date.now(),
           new: true,
@@ -193,24 +200,23 @@ const login = async (req, res) => {
       { new: true }
     );
 
-    const data = {
-    user: {
+    const  userInfo = {
       userId: foundUser._id,
       username: foundUser.username,
       email: foundUser.email,
       avatar: foundUser.avatar,
+      status: foundUser.status,
       verified: foundUser.isVerified,
       loginAttempts: foundUser.loginAttempts,
       resetPasswordAttempts:foundUser.resetPasswordAttempts,
       changePasswordAttempts: foundUser.changePasswordAttempts,
       emailVerificationTokenExpiresAt: foundUser.emailVerificationTokenExpiresAt,
     }
-    }
 
     // Successful login
     console.log('This is the login token ' + accessToken);
     return res.status(200).json({
-      data,
+       userInfo,
       accessToken,
       message: 'Login is successful',
       success: true,

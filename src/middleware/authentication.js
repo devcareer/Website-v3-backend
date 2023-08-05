@@ -37,9 +37,21 @@ module.exports.ensuredAuthenticated = async (req, res, next) => {
       }
       req.body.userId = dec.UserInfo.userId;
       req.body.username = dec.UserInfo.username;
+
+       // check if user is logged in (Active status check)
+    if (user.status === 'Active') {
+      req.user = user;
       next();
+    } else {
+      return res.status(401).json({
+        message: 'FAILED! Unauthorized access. Please login to continue.',
+      });
+    }
     });
+   
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
