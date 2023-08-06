@@ -9,7 +9,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const logger = require('../src/middleware/pinoLogger');
 const errorHandler = require('./middleware/errorHandler');
 const Router = require('../src/routes/index');
-const deleteUnverifiedUsers = require('./middleware/deleteUnverifiedUsers');
+const deleteUnverifiedUsers = require('./service/unverifiedUsers/deleteUnverifiedUsers');
 
 const cleanupInterval = 3 * 60 * 1000; // 3 mins
 
