@@ -77,7 +77,6 @@ const signup = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '3m',
     });
-    console.log('My valid toke:', token);
 
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
@@ -210,7 +209,7 @@ const login = async (req, res) => {
     };
 
     // Successful login
-    console.log('This is the login token ' + accessToken);
+    // console.log('This is the login token ' + accessToken);
     return res.status(200).json({
       data,
       accessToken,
@@ -257,7 +256,7 @@ const emailVerification = async (req, res) => {
     const currentTime = Date.now();
     const tokenExpirationTime = foundUser.emailVerificationTokenExpiresAt;
     if (!tokenExpirationTime || tokenExpirationTime < currentTime) {
-      console.log('Token has expired:', tokenExpirationTime, currentTime);
+      // console.log('Token has expired:', tokenExpirationTime, currentTime);
       return res.status(400).json({
         message: 'Verification token has expired.',
       });
@@ -267,7 +266,7 @@ const emailVerification = async (req, res) => {
     foundUser.isVerified = true;
     await foundUser.save();
 
-    console.log('User verification success:', foundUser);
+    // console.log('User verification success:', foundUser);
 
     // Redirect user to the frontend login page
     return res.redirect(`${process.env.EMAIL_VERIFY_BASE_URL}`);
