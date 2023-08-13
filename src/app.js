@@ -11,7 +11,7 @@ const errorHandler = require('./middleware/errorHandler');
 const Router = require('../src/routes/index');
 const deleteUnverifiedUsers = require('./service/unverifiedUsers/deleteUnverifiedUsers');
 
-const cleanupInterval = 3 * 60 * 1000; // 3 mins
+const cleanupInterval = 24 * 60 * 60 * 1000; // 24 hours
 
 const app = express();
 
