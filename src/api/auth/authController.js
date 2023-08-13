@@ -46,7 +46,8 @@ const signup = async (req, res) => {
             await User.findByIdAndDelete(existingUser._id).exec();
           } else {
             return res.status(400).json({
-              message: 'Email already exists, and verification token is still valid.',
+              message:
+                'Email already exists, and verification token is still valid.',
               success: false,
             });
           }
@@ -58,7 +59,7 @@ const signup = async (req, res) => {
         });
       }
     }
-  
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -76,7 +77,7 @@ const signup = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '3m',
     });
-    console.log('My valid toke:', token)
+    console.log('My valid toke:', token);
 
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
@@ -194,18 +195,19 @@ const login = async (req, res) => {
     );
 
     const data = {
-    user: {
-      userId: foundUser._id,
-      username: foundUser.username,
-      email: foundUser.email,
-      avatar: foundUser.avatar,
-      verified: foundUser.isVerified,
-      loginAttempts: foundUser.loginAttempts,
-      resetPasswordAttempts:foundUser.resetPasswordAttempts,
-      changePasswordAttempts: foundUser.changePasswordAttempts,
-      emailVerificationTokenExpiresAt: foundUser.emailVerificationTokenExpiresAt,
-    }
-    }
+      user: {
+        userId: foundUser._id,
+        username: foundUser.username,
+        email: foundUser.email,
+        avatar: foundUser.avatar,
+        verified: foundUser.isVerified,
+        loginAttempts: foundUser.loginAttempts,
+        resetPasswordAttempts: foundUser.resetPasswordAttempts,
+        changePasswordAttempts: foundUser.changePasswordAttempts,
+        emailVerificationTokenExpiresAt:
+          foundUser.emailVerificationTokenExpiresAt,
+      },
+    };
 
     // Successful login
     console.log('This is the login token ' + accessToken);
@@ -539,7 +541,7 @@ const logout = async (req, res) => {
       success: false,
     });
   }
-  
+
   // update user status & updateAt time
   await User.findByIdAndUpdate(
     foundUser._id,

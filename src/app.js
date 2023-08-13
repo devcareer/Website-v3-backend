@@ -9,6 +9,9 @@ const mongoSanitize = require('express-mongo-sanitize');
 const logger = require('../src/middleware/pinoLogger');
 const errorHandler = require('./middleware/errorHandler');
 const Router = require('../src/routes/index');
+const deleteUnverifiedUsers = require('./service/unverifiedUsers/deleteUnverifiedUsers');
+
+const cleanupInterval = 3 * 60 * 1000; // 3 mins
 
 const app = express();
 
@@ -33,6 +36,9 @@ app.use(hpp());
 app.use(helmet());
 
 app.use('/api/v1', Router);
+
+// Delete Unverified Users after 3 mins
+setInterval(deleteUnverifiedUsers, cleanupInterval);
 
 // send back a 404 error for any unknown api request
 app.all('*', (req, res) => {
