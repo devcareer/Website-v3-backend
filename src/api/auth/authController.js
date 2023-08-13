@@ -337,7 +337,7 @@ const forgotPassword = async (req, res) => {
     );
 
     // Email the user a unique forgot password link
-    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
+    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
     await forgotPasswordMail(
       foundUser.email,
       'Forgot Password\n',
@@ -381,7 +381,7 @@ const resetPasswordLink = async (req, res) => {
     );
 
     // Email the user a unique reset password link
-    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/resetPassword/${token}`;
+    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
     await resetPasswordMail(
       foundUser.email,
       'Reset Your Password',

@@ -14,12 +14,10 @@ router.route('/forgot').post(AuthController.forgotPassword);
 
 router.route('/verify/:token').get(AuthController.emailVerification);
 
-router
-  .route('/getResetLink')
-  .get(AuthController.resetPasswordLink);
+router.route('/getResetLink').get(AuthController.resetPasswordLink);
 
 router
-  .route('/reset')
+  .route('/reset/:token')
   .post(validator('resetPassword'), AuthController.resetPassword);
 
 router
