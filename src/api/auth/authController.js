@@ -75,9 +75,8 @@ const signup = async (req, res) => {
 
     // Generate a token with the ID
     const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '3m',
+      expiresIn: '24h',
     });
-    console.log('My valid toke:', token);
 
     // Email the user a unique verification link
     const url = `${process.env.APP_SERVICE_URL}/api/v1/auth/verify/${token}`;
@@ -240,9 +239,10 @@ const emailVerification = async (req, res) => {
     // Find user with matching ID
     const foundUser = await User.findOne({ _id: payload._id }).exec();
     if (!foundUser) {
-      return res.status(404).json({
-        message: 'User does not exist',
-      });
+      return res.redirect(`${process.env.ERROR_MESSAGE_URL}`);
+      // return res.status(404).json({
+      //   message: 'User does not exist',
+      // });
     }
 
     if (foundUser.isVerified) {
@@ -256,13 +256,16 @@ const emailVerification = async (req, res) => {
     // Check if the verification token has expired
     const currentTime = Date.now();
     const tokenExpirationTime = foundUser.emailVerificationTokenExpiresAt;
-    if (!tokenExpirationTime || tokenExpirationTime < currentTime) {
+    if (!tokenExpirationTime || tokenExpirationTime < currentTime)
+      return res.redirect(`${process.env.ERROR_MESSAGE_URL}`);
+    /**
+    {
       console.log('Token has expired:', tokenExpirationTime, currentTime);
       return res.status(400).json({
         message: 'Verification token has expired.',
       });
     }
-
+    */
     // Update user verification status to true
     foundUser.isVerified = true;
     await foundUser.save();
@@ -281,6 +284,7 @@ const emailVerification = async (req, res) => {
     });
     **/
   } catch (error) {
+    /**
     if (error instanceof jwt.TokenExpiredError) {
       console.log('Token has expired:', error);
       return res.status(400).json({
@@ -301,6 +305,9 @@ const emailVerification = async (req, res) => {
         success: false,
       });
     }
+    */
+    console.log('Other error:', error);
+    return res.redirect(`${process.env.ERROR_MESSAGE_URL}`);
   }
 };
 
