@@ -245,14 +245,16 @@ const emailVerification = async (req, res) => {
       // });
     }
 
-    if (foundUser.isVerified) {
+    if (foundUser.isVerified)
+      return res.redirect(`${process.env.ERROR_MESSAGE_URL}`);
+    /**{
       console.log('User is already verified');
       return res.status(400).json({
         message: 'This user has already been verified.',
         foundUser,
       });
     }
-
+    */
     // Check if the verification token has expired
     const currentTime = Date.now();
     const tokenExpirationTime = foundUser.emailVerificationTokenExpiresAt;
@@ -337,7 +339,8 @@ const forgotPassword = async (req, res) => {
     );
 
     // Email the user a unique forgot password link
-    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/auth/reset/${token}`;
+    // const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/auth/reset/${token}`;
+    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
     await forgotPasswordMail(
       foundUser.email,
       'Forgot Password\n',
@@ -347,6 +350,7 @@ const forgotPassword = async (req, res) => {
     // save update user
     await foundUser.save();
 
+    console.log(`The password was successfully reset`);
     return res.status(200).json({
       message: `The password was successfully reset`,
       success: true,
@@ -381,15 +385,14 @@ const resetPasswordLink = async (req, res) => {
     );
 
     // Email the user a unique reset password link
-    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/reset/${token}`;
-    // const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
+    // const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/reset/${token}`;
+    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
     await resetPasswordMail(
       foundUser.email,
       'Reset Your Password',
       resetPasswordUrl
     );
 
-    /**
     const data = {
       user: {
         resetPasswordMail,
@@ -400,8 +403,6 @@ const resetPasswordLink = async (req, res) => {
       message: `Reset password successfully sent to ${foundUser.email}`,
       success: true,
     });
-    */
-    return res.redirect(`${process.env.RESET_PASSWORD_BASE_URL}`);
   } catch (error) {
     return res.status(500).json({
       message: 'Server error',

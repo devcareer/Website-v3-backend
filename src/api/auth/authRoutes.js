@@ -17,7 +17,7 @@ router.route('/verify/:token').get(AuthController.emailVerification);
 router.route('/getResetLink').get(AuthController.resetPasswordLink);
 
 router
-  .route('/reset/:token')
+  .route('/reset')
   .post(validator('resetPassword'), AuthController.resetPassword);
 
 router
