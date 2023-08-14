@@ -337,7 +337,7 @@ const forgotPassword = async (req, res) => {
     );
 
     // Email the user a unique forgot password link
-    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
+    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/auth/reset/${token}`;
     await forgotPasswordMail(
       foundUser.email,
       'Forgot Password\n',
@@ -381,13 +381,15 @@ const resetPasswordLink = async (req, res) => {
     );
 
     // Email the user a unique reset password link
-    const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
+    const resetPasswordUrl = `${process.env.APP_SERVICE_URL}/api/v1/reset/${token}`;
+    // const resetPasswordUrl = `${process.env.RESET_PASSWORD_BASE_URL}/api/resetPassword/${token}`;
     await resetPasswordMail(
       foundUser.email,
       'Reset Your Password',
       resetPasswordUrl
     );
 
+    /**
     const data = {
       user: {
         resetPasswordMail,
@@ -398,6 +400,8 @@ const resetPasswordLink = async (req, res) => {
       message: `Reset password successfully sent to ${foundUser.email}`,
       success: true,
     });
+    */
+    return res.redirect(`${process.env.RESET_PASSWORD_BASE_URL}`);
   } catch (error) {
     return res.status(500).json({
       message: 'Server error',
