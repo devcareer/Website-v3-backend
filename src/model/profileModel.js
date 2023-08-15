@@ -104,6 +104,11 @@ const profileSchema = new mongoose.Schema({
       required: [true, 'Portfolio URL is required'],
       validate: [validator.isURL, 'Please provide a valid URL'],
     },
+    linkedinUrl: {
+      type: String,
+      required: [true, 'LinkedIn URL is required'],
+      validate: [validator.isURL, 'Please provide a valid URL'],
+    },
   },
   educations: [educationSchema],
   experiences: [experienceSchema],
