@@ -26,8 +26,7 @@ async function createProfile(req, res) {
   // console.log(req.body);
 
   const data = removeIdKeys(req.body);
-
-  // console.log(data);
+  data.username = data.username.toLowerCase();
 
   await Profile.updateOne({ userId: user }, data, { upsert: true })
     .then((doc) => {
@@ -59,7 +58,6 @@ async function getProfile(req, res) {
 
   sortEducationAndExperience(loginUser[0]);
 
-  console.log(loginUser);
   return res.status(200).json({
     status: 'success',
     profile: loginUser,
@@ -70,7 +68,9 @@ async function profileLinkDetails(req, res) {
   const { username } = req.params;
 
   try {
-    const profileUser = await Profile.findOne({ username: username });
+    const profileUser = await Profile.findOne({
+      username: username.toLowerCase(),
+    });
     if (!profileUser) {
       return res.status(404).json({
         status: 'failed',
